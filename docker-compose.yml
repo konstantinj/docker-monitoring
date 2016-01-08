@@ -1,0 +1,125 @@
+elasticsearch:
+  image: elasticsearch
+  restart: always
+  volumes:
+    - ./data/elasticsearch:/var/lib/elasticsearch
+  environment:
+    - COLLECTD_DOCKER_APP=monitoring_elasticsearch
+    - LOGSPOUT=ignore
+logstash:
+  image: logstash
+  restart: always
+  volumes:
+    - ./logstash/config:/etc/logstash
+    - ./collectd/share:/usr/share/collectd:ro
+  command: "logstash -f /etc/logstash/logstash.conf"
+  environment:
+    - COLLECTD_DOCKER_APP=monitoring_logstash
+    - LOGSPOUT=ignore
+  links:
+    - elasticsearch
+kibana:
+  image: kibana
+  restart: always
+  environment:
+    - COLLECTD_DOCKER_APP=monitoring_kibana
+    - LOGSPOUT=ignore
+    - VIRTUAL_HOST=kibana.${HOST}
+    - VIRTUAL_PROTO=http
+    - CERT_NAME=${HOST}
+  links:
+    - elasticsearch
+influxdb-cadvisor:
+  image: tutum/influxdb:0.8.8
+  restart: always
+  environment:
+    - COLLECTD_DOCKER_APP=monitoring_influxdb-cadvisor
+    - LOGSPOUT=ignore
+    - PRE_CREATE_DB=cadvisor
+cadvisor:
+  image: google/cadvisor
+  restart: always
+  command: -storage_driver=influxdb -storage_driver_db=cadvisor -storage_driver_host=influxdb-cadvisor:8086
+  volumes:
+    - /:/rootfs:ro
+    - /var/run:/var/run:rw
+    - /sys:/sys:ro
+    - /var/lib/docker/:/var/lib/docker:ro
+  links:
+    - influxdb-cadvisor
+  environment:
+    - COLLECTD_DOCKER_APP=monitoring_cadvisor
+    - LOGSPOUT=ignore
+    - VIRTUAL_HOST=cadvisor.${HOST}
+    - VIRTUAL_PROTO=http
+    - CERT_NAME=${HOST}
+influxdb:
+  image: tutum/influxdb
+  restart: always
+  volumes:
+    - ./collectd/share:/usr/share/collectd:ro
+  environment:
+    - COLLECTD_DOCKER_APP=monitoring_influxdb
+    - LOGSPOUT=ignore
+    - ADMIN_USER=root
+    - INFLUXDB_INIT_PWD=${PASS_INFLUXDB}
+    - PRE_CREATE_DB=collectd
+    - COLLECTD_DB=collectd
+    - COLLECTD_BINDING=:25826
+collectd:
+  image: konjak/docker-collectd
+  #build: ~/docker-src/docker-collectd/.
+  restart: always
+  volumes:
+    - ./collectd/collectd.d:/etc/collectd/collectd.d
+    - ./collectd/share:/usr/share/collectd
+    - /var/run/docker.sock:/var/run/docker.sock
+  links:
+    - influxdb
+    - logstash
+  environment:
+    - COLLECTD_DOCKER_APP=monitoring_collectd
+    - LOGSPOUT=ignore
+    - HOSTNAME=localhost
+    - NETOWRK_HOST=logstash
+    - NETWORK_PORT=25826
+    - INFLUXDB_HOST=influxdb
+    - INFLUXDB_PORT=25826
+grafana:
+  image: konjak/docker-grafana
+  #build: ~/docker-src/docker-grafana/. 
+  restart: always
+  environment:
+    - COLLECTD_DOCKER_APP=monitoring_grafana
+    - LOGSPOUT=ignore
+    - VIRTUAL_HOST=grafana.${HOST}
+    - VIRTUAL_PORT=3000
+    - VIRTUAL_PROTO=http
+    - CERT_NAME=${HOST}
+    - GF_SECURITY_ADMIN_USER=admin
+    - GF_SECURITY_ADMIN_PASSWORD=${PASS_GRAFANA}
+    - DS_NAME=influxdb
+    - DS_TYPE=influxdb
+    - DS_ACCESS=proxy
+    - DS_URL=http://influxdb:8086
+    - DS_PASSWORD=${PASS_INFLUXDB}
+    - DS_USER=root
+    - DS_DATABASE=collectd
+    - DS_IS_DEFAULT=true
+    - API_HOST=localhost
+    - API_PORT=3000
+    - API_USER=admin
+    - API_PASS=${PASS_GRAFANA}
+  links:
+    - influxdb
+logspout:
+  image: gliderlabs/logspout
+  restart: always
+  volumes:
+    - /var/run/docker.sock:/tmp/docker.sock
+  command: "syslog://logstash:5555"
+  links:
+    - logstash
+  environment:
+    - COLLECTD_DOCKER_APP=monitoring_logspout
+    - LOGSPOUT=ignore
