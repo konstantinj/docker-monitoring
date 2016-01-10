@@ -24,9 +24,9 @@ kibana:
   environment:
     - COLLECTD_DOCKER_APP=monitoring_kibana
     - LOGSPOUT=ignore
-    - VIRTUAL_HOST=kibana.${HOST}
+    - VIRTUAL_HOST=kibana.k86.eu
     - VIRTUAL_PROTO=http
-    - CERT_NAME=${HOST}
+    - CERT_NAME=k86.eu
   links:
     - elasticsearch
 influxdb-cadvisor:
@@ -50,19 +50,22 @@ cadvisor:
   environment:
     - COLLECTD_DOCKER_APP=monitoring_cadvisor
     - LOGSPOUT=ignore
-    - VIRTUAL_HOST=cadvisor.${HOST}
+    - VIRTUAL_HOST=cadvisor.k86.eu
     - VIRTUAL_PROTO=http
-    - CERT_NAME=${HOST}
+    - CERT_NAME=k86.eu
 influxdb:
   image: tutum/influxdb
   restart: always
+  ports:
+    - "8083:8083"
+    - "8086:8086"
   volumes:
     - ./collectd/share:/usr/share/collectd:ro
   environment:
     - COLLECTD_DOCKER_APP=monitoring_influxdb
     - LOGSPOUT=ignore
     - ADMIN_USER=root
-    - INFLUXDB_INIT_PWD=${PASS_INFLUXDB}
+    - INFLUXDB_INIT_PWD=bKil27TctOsfXMXfoEhNiydZlixjLcht
     - PRE_CREATE_DB=collectd
     - COLLECTD_DB=collectd
     - COLLECTD_BINDING=:25826
@@ -92,24 +95,24 @@ grafana:
   environment:
     - COLLECTD_DOCKER_APP=monitoring_grafana
     - LOGSPOUT=ignore
-    - VIRTUAL_HOST=grafana.${HOST}
+    - VIRTUAL_HOST=grafana.k86.eu
     - VIRTUAL_PORT=3000
     - VIRTUAL_PROTO=http
-    - CERT_NAME=${HOST}
+    - CERT_NAME=k86.eu
     - GF_SECURITY_ADMIN_USER=admin
-    - GF_SECURITY_ADMIN_PASSWORD=${PASS_GRAFANA}
+    - GF_SECURITY_ADMIN_PASSWORD=eaSiyM9IDqNGBMRdcD5pH70BXKDJJImS
     - DS_NAME=influxdb
     - DS_TYPE=influxdb
     - DS_ACCESS=proxy
     - DS_URL=http://influxdb:8086
-    - DS_PASSWORD=${PASS_INFLUXDB}
+    - DS_PASSWORD=bKil27TctOsfXMXfoEhNiydZlixjLcht
     - DS_USER=root
     - DS_DATABASE=collectd
     - DS_IS_DEFAULT=true
     - API_HOST=localhost
     - API_PORT=3000
     - API_USER=admin
-    - API_PASS=${PASS_GRAFANA}
+    - API_PASS=eaSiyM9IDqNGBMRdcD5pH70BXKDJJImS
   links:
     - influxdb
 logspout:
