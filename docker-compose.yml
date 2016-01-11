@@ -56,9 +56,6 @@ cadvisor:
 influxdb:
   image: tutum/influxdb
   restart: always
-  ports:
-    - "8083:8083"
-    - "8086:8086"
   volumes:
     - ./collectd/share:/usr/share/collectd:ro
   environment:
@@ -71,7 +68,6 @@ influxdb:
     - COLLECTD_BINDING=:25826
 collectd:
   image: konjak/docker-collectd
-  #build: ~/docker-src/docker-collectd/.
   restart: always
   volumes:
     - ./collectd/collectd.d:/etc/collectd/collectd.d
@@ -80,6 +76,8 @@ collectd:
   links:
     - influxdb
     - logstash
+  external_links:
+    - nginx:nginx
   environment:
     - COLLECTD_DOCKER_APP=monitoring_collectd
     - LOGSPOUT=ignore
@@ -90,7 +88,6 @@ collectd:
     - INFLUXDB_PORT=25826
 grafana:
   image: konjak/docker-grafana
-  #build: ~/docker-src/docker-grafana/. 
   restart: always
   environment:
     - COLLECTD_DOCKER_APP=monitoring_grafana

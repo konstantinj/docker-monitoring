@@ -6,31 +6,21 @@ Please take a look at the used images for more information.
 
 ## Dependencies
 
-I'm using [nginx-proxy](https://github.com/jwilder/nginx-proxy) to access kibana, grafana and cadvisor. This image is using the ENV vars VIRTUAL_* to setup the proxy config. You can just start this image as independent container and provide a host in HOST (see start.sh).
+I'm using [nginx-proxy](https://github.com/jwilder/nginx-proxy) to access kibana, grafana and cadvisor. This image is using the ENV vars VIRTUAL_* to setup the proxy config. Please change them to be able to access containers.
 
 ## Usage
 
-When using docker-compose directly to start the stack you have to export these shell variables before:
+You may want to run generate_passwords.sh to generate some random passwords for your services.
+Afterwards you can just use docker-compose to start.
 
 ```bash
-export PASS_INFLUXDB=secret
-export PASS_GRAFANA_secret
-
+./generate_passwords.sh
 docker-compose up
-```
-
-For convenience I've provided a shell script that generated passwords. So you can just use:
-
-```bash
-./start.sh
 ```
 
 ## How it works
 
 Logspout is aggregating logs from all containers (without the LOGSPOUT=ignore ENV) and sends the data to logstash. Logstash is forwarding data to elasticsearch which you can then see in Kibana.
 Collectd is collecting logs from the host and all docker containers with the COLLECTD_DOCKER_APP ENV. It's sending the data to logstash and influxdb. So you are able to use the metric data in Kibana together with log data and in grafana which as influxdb as pre defined datasource.
-Cadvisor is just included as long as there are no pregenerated dashboards.
-
-## TODO
-
-Currently there are no pregenerated dashboards in kibana and grafana. Still on it.
+Cadvisor is just there to have it.
+Grafana comes with predefined dashboards to monitor the host and docker containers.
