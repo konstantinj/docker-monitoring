@@ -1,4 +1,6 @@
 elasticsearch:
+  cpu_shares: 500
+  cpuset: 0,1,2,3
   image: elasticsearch
   restart: always
   volumes:
@@ -7,6 +9,8 @@ elasticsearch:
     - COLLECTD_DOCKER_APP=monitoring_elasticsearch
     - LOGSPOUT=ignore
 logstash:
+  cpu_shares: 500
+  cpuset: 0,1,2,3
   image: logstash
   restart: always
   volumes:
@@ -19,7 +23,9 @@ logstash:
   links:
     - elasticsearch
 kibana:
-  image: kibana
+  cpu_shares: 500
+  cpuset: 0,1,2,3
+  image: kibana:4.3.1
   restart: always
   environment:
     - COLLECTD_DOCKER_APP=monitoring_kibana
@@ -30,6 +36,8 @@ kibana:
   links:
     - elasticsearch
 influxdb-cadvisor:
+  cpu_shares: 500
+  cpuset: 0,1,2,3
   image: tutum/influxdb:0.8.8
   restart: always
   environment:
@@ -37,6 +45,8 @@ influxdb-cadvisor:
     - LOGSPOUT=ignore
     - PRE_CREATE_DB=cadvisor
 cadvisor:
+  cpu_shares: 500
+  cpuset: 0,1,2,3
   image: google/cadvisor
   restart: always
   command: -storage_driver=influxdb -storage_driver_db=cadvisor -storage_driver_host=influxdb-cadvisor:8086
@@ -54,6 +64,8 @@ cadvisor:
     - VIRTUAL_PROTO=http
     - CERT_NAME=k86.eu
 influxdb:
+  cpu_shares: 500
+  cpuset: 0,1,2,3
   image: tutum/influxdb
   restart: always
   volumes:
@@ -67,6 +79,8 @@ influxdb:
     - COLLECTD_DB=collectd
     - COLLECTD_BINDING=:25826
 collectd:
+  cpu_shares: 500
+  cpuset: 0,1,2,3
   image: konjak/docker-collectd
   restart: always
   volumes:
@@ -87,6 +101,8 @@ collectd:
     - INFLUXDB_HOST=influxdb
     - INFLUXDB_PORT=25826
 grafana:
+  cpu_shares: 500
+  cpuset: 0,1,2,3
   image: konjak/docker-grafana
   restart: always
   environment:
@@ -113,6 +129,8 @@ grafana:
   links:
     - influxdb
 logspout:
+  cpu_shares: 500
+  cpuset: 0,1,2,3
   image: gliderlabs/logspout
   restart: always
   volumes:
