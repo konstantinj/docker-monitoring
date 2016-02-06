@@ -42,39 +42,6 @@ kibana:
   volumes:
     - /etc/localtime:/etc/localtime:ro
     - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
-influxdb-cadvisor:
-  cpu_shares: 500
-  cpuset: 0,1,2,3
-  restart: always
-  image: tutum/influxdb:0.8.8
-  environment:
-    - COLLECTD_DOCKER_APP=monitoring_influxdb-cadvisor
-    - LOGSPOUT=ignore
-    - PRE_CREATE_DB=cadvisor
-  volumes:
-    - /etc/localtime:/etc/localtime:ro
-    - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
-cadvisor:
-  cpu_shares: 500
-  cpuset: 0,1,2,3
-  image: google/cadvisor
-  restart: always
-  links:
-    - influxdb-cadvisor
-  environment:
-    - COLLECTD_DOCKER_APP=monitoring_cadvisor
-    - LOGSPOUT=ignore
-    - VIRTUAL_HOST=cadvisor.k86.eu
-    - VIRTUAL_PROTO=http
-    - CERT_NAME=k86.eu
-  volumes:
-    - /:/rootfs:ro
-    - /var/run:/var/run:rw
-    - /sys:/sys:ro
-    - /var/lib/docker/:/var/lib/docker:ro
-    - /etc/localtime:/etc/localtime:ro
-    - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
-  command: -storage_driver=influxdb -storage_driver_db=cadvisor -storage_driver_host=influxdb-cadvisor:8086
 influxdb:
   cpu_shares: 500
   cpuset: 0,1,2,3
