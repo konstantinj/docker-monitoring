@@ -64,6 +64,12 @@ collectd:
   cpuset: 0,1,2,3
   restart: always
   image: konjak/collectd
+  volumes:
+    - ./collectd/collectd.d:/etc/collectd/collectd.d
+    - ./collectd/share:/usr/share/collectd
+    - /var/run/docker.sock:/var/run/docker.sock
+    - /mnt/ramdisk/docker/monitoring:/ramdisk
+    - /mnt/ramdisk/docker/mail:/ramdisk-mail:ro
   links:
     - influxdb
     - logstash
@@ -77,10 +83,21 @@ collectd:
     - NETWORK_PORT=25826
     - INFLUXDB_HOST=influxdb
     - INFLUXDB_PORT=25826
+cgp:
+  cpu_shares: 500
+  cpuset: 0,1,2,3
+  restart: always
+  image: konjak/cgp
+  expose:
+    - "80"
+  environment:
+    - COLLECTD_DOCKER_APP=monitoring_cgp
+    - LOGSPOUT=ignore
+    - VIRTUAL_HOST=cgp.k86.eu
+    - VIRTUAL_PROTO=http
+    - CERT_NAME=k86.eu
   volumes:
-    - ./collectd/collectd.d:/etc/collectd/collectd.d
-    - ./collectd/share:/usr/share/collectd
-    - /var/run/docker.sock:/var/run/docker.sock
+    - /mnt/ramdisk/docker/monitoring/collectd:/var/lib/collectd
     - /etc/localtime:/etc/localtime:ro
     - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
 grafana:
